@@ -1,0 +1,249 @@
+<html>
+    <head>
+        <title>Test Prototype</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.9/dc.css"/>
+        <script type="text/javascript" src="https://rawgithub.com/NickQiZhu/dc.js/master/web/js/crossfilter.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.js"></script>
+        <script type="text/javascript" src="https://dc-js.github.io/dc.js/js/dc.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+        <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+        <!-- Latest compiled JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+        <style>
+            .button {background-color: #f44336; width: 100px;}
+            a:link,a:hover, a:active, a:visited {
+                text-decoration: none! important;
+                color: white;
+            }
+            h3 {
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="row">
+            <div class="col-md-2">
+                <div class="container">
+                    <h3>MENU</h3>
+                    <button type="button" class="btn button"><a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a></button>
+                    <br><br>
+                    <button type="button" class="btn button"><a href="javascript:window.location.reload();">Reload</a></button>
+                </div>
+            </div>
+            <div class="col-md-10">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h1>
+                            Prototype
+                        </h1>
+                        <p>
+                            PILOT VERSION. - blah blah.<br>
+                            Click the charts to filter the various dimensions of your dataset. Refer to the help for more details.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 col-sm-6"> 
+                        <b>Name & Age:</b>
+                        <div id="rowchart" style="margin: 15px;"></div>
+                    </div>
+                    <div class="col-md-5 col-sm-6">  
+                        <b>Age & Number of Child:</b>
+                        <div id="chart1" style="margin: 15px;"></div>
+                        <div id="chart2" style="margin: 15px;"></div>
+                    </div>
+                    <div class="col-md-4 col-sm-6">  
+                        <b>Gender & Name:</b>
+                        <div id="pie1" style="margin: 15px;"></div>
+                    </div>
+                </div>
+                <div class="row"> 
+                    <div class="col-md-8 col-sm-8"> 
+                        <b>Data Table:</b>
+                        <div id="table" style="margin: 15px; padding: 10px;" class="table table-striped"></div>
+                    </div>
+                    <div class="col-md-4 col-sm-4">
+                        <b>Date of Birth:</b>
+                        <div id="pie2" style="margin: 15px;"></div>   
+                    </div>
+                </div>
+            </div>
+            <script>
+                // Create crossfilter of our data
+
+                let people = crossfilter([
+                    {id: 1, name: "Damaris", gender: "Male", DOB: "1973-02-18", age: 46, MaritalStatus: "true", child: 4},
+                    {id: 2, name: "Barbe", gender: "Female", DOB: "1969-04-10", age: 50, MaritalStatus: "true", child: 5},
+                    {id: 3, name: "Belia", gender: "Female", DOB: "1960-04-16", age: 59, MaritalStatus: "true", child: 7},
+                    {id: 4, name: "Leoline", gender: "Female", DOB: "1995-01-19", age: 24, MaritalStatus: "true", child: 1},
+                    {id: 5, name: "Valentine", gender: "Female", DOB: "1992-04-16", age: 27, MaritalStatus: "true", child: 2},
+                    {id: 6, name: "Rosanne", gender: "Female", DOB: "1985-01-05", age: 34, MaritalStatus: "true", child: 3},
+                    {id: 7, name: "Shalna", gender: "Female", DOB: "1956-11-01", age: 63, MaritalStatus: "true", child: 3},
+                    {id: 8, name: "Mordy", gender: "Male", DOB: "1990-03-27", age: 29, MaritalStatus: "true", child: 2}
+                ])
+
+                // First Dimension
+
+                let dimensionCategory = people.dimension(item => item.DOB)
+                let age = dimensionCategory.group().reduceSum(item => item.age)
+
+
+                // Beware, javascript will retromodify firstResult (javascript loves saving things by parameters), you must comment the filter to look at this result etc etc...
+                const firstResult = age.all();
+                //console.log("First result:");
+                console.log(firstResult);
+
+                // Tips and Tricks
+
+                // 1: Separate value on distinct conditions
+                let GenderdAndName = people.dimension(item => item.gender + '_' + item.name)
+                let ageByGenderdAndName = GenderdAndName.group().reduceSum(item => item.age)
+
+                const differentCategoriesResult = ageByGenderdAndName.all()
+                //console.log("Result 4 with 2 categories:")
+                console.log(differentCategoriesResult)
+
+                //2: Overall sum
+                let MaritalStatus = people.dimension(item => "MaritalStatus")
+                let ageByMaritalStatus = MaritalStatus.group().reduceSum(item => item.child)
+
+                const overallQuantity = ageByMaritalStatus.all()
+                // console.log("Result 5: total quantity")
+                console.log(overallQuantity)
+
+                // Let's add graphs to our dashboard
+                var pie1 = dc.pieChart("#pie1");
+                pie1
+                        .width(250)
+                        .height(300)
+                        .innerRadius(5)
+                        .dimension(GenderdAndName)
+                        .group(ageByGenderdAndName);
+                pie1.render();
+
+                var pie2 = dc.pieChart("#pie2");
+                pie2
+                        .width(300)
+                        .height(300)
+                        .innerRadius(5)
+                        .dimension(dimensionCategory)
+                        .group(age);
+                pie2.render();
+
+                let idCategory = people.dimension(item => item.id);
+                let childById = idCategory.group().reduceSum(item => item.child);
+                console.log(childById.all());
+
+                var chart1 = dc.barChart("#chart1");
+                chart1
+                        .width(500)
+                        .height(200)
+                        .x(d3.scaleOrdinal())
+                        .xUnits(dc.units.ordinal)
+                        .xAxisLabel("ID")
+                        .yAxisLabel("Number Of Child")
+                        .elasticY(true)
+                        .elasticX(true)
+                        .dimension(idCategory)
+                        .group(childById);
+                chart1.render();
+
+
+                let NameCategory = people.dimension(item => item.name);
+                let AgeByName = NameCategory.group().reduceSum(item => item.age);
+                console.log(AgeByName.all());
+
+                var chart2 = dc.barChart("#chart2");
+                chart2
+                        .width(500)
+                        .height(200)
+                        .x(d3.scaleOrdinal())
+                        .xUnits(dc.units.ordinal)
+                        .xAxisLabel("Name")
+                        .yAxisLabel("Age")
+                        .elasticY(true)
+                        .elasticX(true)
+                        .dimension(NameCategory)
+                        .group(AgeByName);
+                chart2.render();
+
+                let name = people.dimension(item => item.name);
+                let ageByName = name.group().reduceSum(item => item.age);
+                console.log(ageByName.all());
+
+                var rowchart = dc.rowChart("#rowchart");
+                rowchart
+                        //.width(600)
+                        .height(300)
+                        .x(d3.scaleLinear().domain([6, 20]))
+                        .elasticX(true)
+                        .dimension(name)
+                        .group(ageByName);
+                rowchart.render();
+
+                var table = dc.dataTable('#table');
+                table
+                        .dimension(NameCategory)
+                        .size(Infinity)
+                        .width(600)
+                        .sortBy(function (d) {
+                            return +d.age;
+                        })
+                        .showSections(false)
+                        .columns([
+                            {
+                                label: 'ID',
+                                format: function (d) {
+                                    return d.id;
+                                }
+                            },
+                            {
+                                label: 'Name',
+                                format: function (d) {
+                                    return d.name;
+                                }
+                            },
+                            {
+                                label: 'Gender',
+                                format: function (d) {
+                                    return d.gender;
+                                }
+                            },
+                            {
+                                label: 'DOB',
+                                format: function (d) {
+                                    return d.DOB;
+                                }
+                            },
+                            {
+                                label: 'age',
+                                format: function (d) {
+                                    return d.age;
+                                }
+                            },
+                            {
+                                label: 'Marital Status',
+                                format: function (d) {
+                                    return d.MaritalStatus;
+                                }
+                            },
+                            {
+                                label: 'Children',
+                                format: function (d) {
+                                    return d.child;
+                                }
+                            }
+                        ]);
+                table.render();
+            </script>
+        </div>
+    </body>
+</html>
+
