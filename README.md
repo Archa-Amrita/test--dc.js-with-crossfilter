@@ -1,1 +1,1 @@
-*****************Clone the repository then run the index.php file in your browser.**********************
+*****************Clone the repository then run the index.html file in your browser.
