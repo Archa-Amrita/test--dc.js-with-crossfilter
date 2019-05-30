@@ -1,1 +1,1 @@
-Download the index.html file and open it with any browser.
+Download the repository then extract the downloaded zipp file. Then open index.html file with any browser.
